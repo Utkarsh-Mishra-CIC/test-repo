@@ -3,14 +3,16 @@ from flask import Flask, render_template, redirect, \
     url_for, request, session, flash
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
-import sqlite3
+from flask_bcrypt import Bcrypt
+from forms import LoginForm
 
-# create the application object
+# create the application object, pass it into Bcrypt for hashing
 app = Flask(__name__)
+bcrypt = Bcrypt(app)
 
 # config
-app.secret_key = 'unity'
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///posts.db'
+import os
+app.config.from_object('config.DevelopmentConfig')
 
 # create the sqlalchemy object
 db = SQLAlchemy(app)
@@ -49,15 +51,18 @@ def welcome():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
+    form = LoginForm(request.form)
     if request.method == 'POST':
-        if (request.form['username'] != 'admin') \
-                or request.form['password'] != 'admin':
-            error = 'Invalid Credentials. Please try again.'
+        if form.validate_on_submit():
+            user = User.query.filter_by(name = request.form['username']).first()
+            if user is not None and bcrypt.check_password_hash(user.password,request.form['password']):
+            # if (request.form['username'] != 'admin') or request.form['password'] != 'admin':
+                session['logged_in'] = True
+                flash('You were logged in.')
+                return redirect(url_for('home'))
         else:
-            session['logged_in'] = True
-            flash('You were logged in.')
-            return redirect(url_for('home'))
-    return render_template('login.html', error=error)
+            error = 'Invalid Credentials. Please try again.'
+    return render_template('login.html',form = form, error=error)
 
 
 @app.route('/logout')
@@ -68,11 +73,6 @@ def logout():
     return redirect(url_for('welcome'))
 
 
-# connect to database
-def connect_db():
-    return sqlite3.connect('posts.db')
-
-
 # start the server with the 'run()' method
 if __name__ == '__main__':
-    app.run(debug=True)
+    app.run()
