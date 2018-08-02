@@ -74,6 +74,7 @@ def login():
     form = LoginForm(request.form)
     if request.method == 'POST':
         if form.validate_on_submit():
+            print('iamhere2')
             user = User.query.filter_by(name = request.form['username']).first()
             if user is not None and bcrypt.check_password_hash(user.password,request.form['password']):
             # if (request.form['username'] != 'admin') or request.form['password'] != 'admin':
@@ -111,4 +112,4 @@ def register():
 
 # start the server with the 'run()' method
 if __name__ == '__main__':
-    app.run()
+    app.run(ssl_context=('cert.pem', 'key.pem'))

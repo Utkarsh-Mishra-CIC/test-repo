@@ -37,7 +37,7 @@ class FlaskTestCase(BaseTestCase):
     def test_posts_show_up_on_main_page(self):
         response = self.client.post(
             '/login',
-            data=dict(username="admin", password="admin"),
+            data=dict(username="admin", password="admin1234"),
             follow_redirects=True
         )
         self.assertIn(b'This is a test. Only a test.', response.data)

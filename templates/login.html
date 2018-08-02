@@ -6,6 +6,7 @@
 <form class="form-signin" role="form" method="post" action="">
   {{ form.csrf_token }}
   <p>
+    <!-- <input placeholder="Username" name="username" id="username" type="text" class="validate"> value="{{ form.username }}" -->
     {{ form.username(placeholder="username") }}
     <span class="error">
       {% if form.username.errors %}
@@ -16,6 +17,7 @@
     </span>
   </p>
   <p>
+  <!-- <input placeholder="Password" name="password" id="password" type="password" class="validate"> value="{{ form.password }}" -->
   {{ form.password(placeholder="password") }}
     <span class="error">
       {% if form.password.errors %}
