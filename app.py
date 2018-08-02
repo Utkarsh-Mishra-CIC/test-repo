@@ -46,7 +46,7 @@ def load_user(user_id):
 @login_required
 def home():
     error = None
-    form = MessageForm(request.form)
+    form = MessageForm(request.form,csrf_enabled = False)
     if form.validate_on_submit():
         new_message = BlogPost(
             form.title.data,
@@ -71,8 +71,11 @@ def welcome():
 @app.route('/login', methods=['GET', 'POST'])
 def login():
     error = None
-    form = LoginForm(request.form)
+    form = LoginForm(request.form, csrf_enabled = False)
     if request.method == 'POST':
+
+        print(request,request.form)
+        
         if form.validate_on_submit():
             print('iamhere2')
             user = User.query.filter_by(name = request.form['username']).first()
@@ -97,7 +100,7 @@ def logout():
 
 @app.route('/register', methods=['GET', 'POST'])
 def register():
-    form = RegisterForm()
+    form = RegisterForm(csrf_enabled = False)
     if form.validate_on_submit():
         user = User(
             name=form.username.data,
