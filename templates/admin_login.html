@@ -1,0 +1,21 @@
+{% extends "base.html" %}
+{% block content %}
+
+<h1>Please login</h1>
+<br>
+<form class="form-signin" role="form" method="post" action="">
+  <p>
+  <!-- <input placeholder="Password" name="password" id="password" type="password" class="validate"> value="{{ form.password }}" -->
+  {{ form.password(placeholder="password") }}
+    <span class="error">
+      {% if form.password.errors %}
+        {% for error in form.password.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <button class="btn btn-sm btn-success" type="submit">Sign in</button>
+</form>
+
+{% endblock %}

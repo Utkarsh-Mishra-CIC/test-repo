@@ -7,25 +7,25 @@
 <br>
 
 <!-- post form -->
-<h3>Add a Post!</h3>
+<h3>Add a Report!</h3>
 <br>
 <form class="form-message" role="form" method="post" action="/">
   <!-- {{ form.csrf_token }} -->
   <p>
-    {{ form.title(placeholder="title") }}
+    {{ form.eid(placeholder="eid") }}
     <span class="error">
-      {% if form.title.errors %}
-        {% for error in form.title.errors %}
+      {% if form.eid.errors %}
+        {% for error in form.eid.errors %}
           {{ error }}
         {% endfor %}
       {% endif %}
     </span>
   </p>
   <p>
-  {{ form.description(placeholder="description") }}
+  {{ form.report(placeholder="json report") }}
     <span class="error">
-      {% if form.description.errors %}
-        {% for error in form.description.errors %}
+      {% if form.report.errors %}
+        {% for error in form.report.errors %}
           {{ error }}
         {% endfor %}
       {% endif %}
@@ -37,9 +37,9 @@
 <!-- All posts -->
 <h3>Posts:</h3>
 {% for post in posts %}
-  <strong>Title:</strong> {{ post.title }} <br>
-  <strong>Post:</strong> {{ post.description }} <br>
-  <strong>Author:</strong> {{ post.author.name }} <br>
+  <strong>eid:</strong> {{ post.eid }} <br>
+  <strong>uid:</strong> {{ post.user.uid }} <br>
+  <strong>report:</strong> {{ post.report }} <br>
 <br>
 {% endfor %}
 

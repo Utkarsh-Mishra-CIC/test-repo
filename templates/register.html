@@ -46,6 +46,26 @@
       {% endif %}
     </span>
   </p>
+  <p>
+    {{ form.gender(placeholder="gender") }}
+    <span class="error">
+      {% if form.gender.errors %}
+        {% for error in form.gender.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
+  <p>
+    {{ form.usertype(placeholder="usertype") }}
+    <span class="error">
+      {% if form.usertype.errors %}
+        {% for error in form.usertype.errors %}
+          {{ error }}
+        {% endfor %}
+      {% endif %}
+    </span>
+  </p>
   <button class="btn btn-sm btn-success" type="submit">Register!</button>
 </form>
 

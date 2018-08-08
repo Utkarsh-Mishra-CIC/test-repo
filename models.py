@@ -3,37 +3,41 @@ from app import bcrypt
 
 from sqlalchemy import ForeignKey
 from sqlalchemy.orm import relationship
-class BlogPost(db.Model):
+class Report(db.Model):
 
-    __tablename__ = "posts"
+    __tablename__ = "ExerciseReports"
 
-    id = db.Column(db.Integer, primary_key=True)
-    title = db.Column(db.String, nullable=False)
-    description = db.Column(db.String, nullable=False)
-    author_id = db.Column(db.Integer, ForeignKey('users.id'))
+    rid = db.Column(db.Integer, primary_key=True)
+    eid = db.Column(db.Integer, nullable=False)
+    report = db.Column(db.String, nullable=False)
+    uid = db.Column(db.Integer, ForeignKey('Users.uid'))
 
-    def __init__(self, title, description, author_id):
-        self.title = title
-        self.description = description
-        self.author_id = author_id
+    def __init__(self, eid, report, uid):
+        self.eid = eid
+        self.report = report
+        self.uid = uid
 
     def __repr__(self):
-        return '<title {}'.format(self.title)
+        return '<title {}'.format(self.eid)
 
 class User(db.Model):
 
-    __tablename__ = "users"
+    __tablename__ = "Users"
 
-    id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String, nullable=False)
-    email = db.Column(db.String, nullable=False)
-    password = db.Column(db.String, nullable=False)
-    posts = relationship("BlogPost", backref="author")
+    uid = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(20),unique=True, nullable=False)
+    email = db.Column(db.String,unique=True, nullable=True)
+    password = db.Column(db.String(20), nullable=False)
+    gender = db.Column(db.String, nullable=True)
+    usertype = db.Column(db.String, nullable = False)
+    report = relationship("Report", backref="user")
 
-    def __init__(self, name, email, password):
-        self.name = name
+    def __init__(self, username, password, usertype , email = None, gender = None):
+        self.username = username
         self.email = email
         self.password = bcrypt.generate_password_hash(password)
+        self.gender = gender
+        self.usertype = usertype
 
     def is_authenticated(self):
         return True
@@ -45,7 +49,7 @@ class User(db.Model):
         return False
 
     def get_id(self):
-        return str(self.id)
+        return str(self.uid)
 
     def __repr__(self):
-        return '<name {}'.format(self.name)
+        return '<name {}'.format(self.username)

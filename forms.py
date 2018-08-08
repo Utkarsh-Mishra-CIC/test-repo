@@ -1,5 +1,5 @@
 from flask_wtf import FlaskForm
-from wtforms import TextField, PasswordField
+from wtforms import TextField, PasswordField, SelectField, TextAreaField, StringField, FieldList, FormField
 from wtforms.validators import DataRequired, Length, Email, EqualTo
 
 class LoginForm(FlaskForm):
@@ -13,7 +13,7 @@ class RegisterForm(FlaskForm):
     )
     email = TextField(
         'email',
-        validators=[DataRequired(), Email(message=None), Length(min=6, max=40)]
+        validators= [DataRequired(), Email(message=None), Length(min=6, max=40)]
     )
     password = PasswordField(
         'password',
@@ -25,8 +25,45 @@ class RegisterForm(FlaskForm):
             DataRequired(), EqualTo('password', message='Passwords must match.')
         ]
     )
+    gender = SelectField(
+        'Gender',
+        choices=[('Male', 'Male'), ('Female', 'Female'), ('', 'Select')]
+    )
+    usertype = StringField ('User Type',render_kw={'readonly': True})
+    # usertype = SelectField(
+    #     'User Type',
+    #     choices=[('Trainee','Trainee'), ('Expert','Expert')]
+    # )
 
-class MessageForm(FlaskForm):
-    title = TextField('Title', validators=[DataRequired()])
-    description = TextField(
-        'Description', validators=[DataRequired(), Length(max=140)])
+class AdminForm(FlaskForm):
+    password = PasswordField('Password', validators=[DataRequired()])
+
+class ReportForm(FlaskForm):
+    eid = TextField('EID', validators=[DataRequired()])
+    report = TextAreaField(
+        'Report',render_kw={"rows": 11, "cols": 70}, validators=[DataRequired()])
+
+class AdminRowForm(FlaskForm):
+    uid = TextField('UID', render_kw={'readonly':True})
+    username = TextField('Username',render_kw={'readonly':True})
+    email = TextField('Email',render_kw={'readonly':True})
+    gender = TextField('Gender', render_kw={'readonly':True})
+    usertype = SelectField(
+        'User Type',
+        choices=[('Trainee','Trainee'),('Expert','Expert')]
+    )
+
+class SuperAdminRowForm(FlaskForm):
+    uid = TextField('UID', render_kw={'readonly':True})
+    username = TextField('Username',render_kw={'readonly':True})
+    email = TextField('Email',render_kw={'readonly':True})
+    gender = TextField('Gender', render_kw={'readonly':True})
+    usertype = TextField('User Type', render_kw={'readonly':True})
+
+class AdminListForm(FlaskForm):
+    admin_user = FieldList(FormField(SuperAdminRowForm))
+    users = FieldList(FormField(AdminRowForm))
+
+class ResetPassword(FlaskForm):
+    password = PasswordField('Password',validators=[DataRequired(), Length(min=6, max=25)])
+    confirm = PasswordField('Confirm',validators=[DataRequired(), EqualTo('password', message='Passwords must match.')])
