@@ -32,7 +32,6 @@ def load_user(user_id):
 
 # login required decorator
 def login_required(f):
-
     @wraps(f)
     def wrap(*args, **kwargs):
         if 'user' in session:
@@ -71,7 +70,8 @@ def home():
         return redirect(url_for('home'))
     else:
         posts = db.session.query(Report).filter_by(uid=current_user.uid).all()
-        return render_template('index.html', posts=posts, form = form, error = error)  # render a template
+        usertype = current_user.usertype
+        return render_template('index.html', posts=posts,usertype = usertype, form = form, error = error)  # render a template
 
 @app.route('/admin/home', methods=['GET', 'POST'])
 @admin_required
@@ -79,6 +79,7 @@ def admin_home():
     if current_user.username != 'Admin':
         return redirect(url_for('home'))
     error = None
+    print(request.headers)
     form = AdminListForm(request.form, csrf_enabled = False)
     admin = db.session.query(User).filter_by(username='Admin').first()
     all_users = db.session.query(User).filter(User.username!='Admin').all()
@@ -102,8 +103,6 @@ def admin_home():
         my_other_list = []
         if request.form.get('admin_user-0-uid_admin') == 'admin_user-0-uid_admin':
             return redirect(url_for('pass_reset',uid = 1))
-        elif request.form.get('admin_user-0-uid_admin_delete') == 'admin_user-0-uid_admin_delete':
-            return redirect(url_for('user_delete',uid = 1))
         else:
             for key in request.form:
                 m = re.match("^users-[0-9]+-uid_user$",key)
@@ -133,7 +132,6 @@ def usertype_update(uid,type_user):
     db.session.commit()
     return redirect(url_for('admin_home'))
 
-
 @app.route('/admin/home/<int:uid>/reset', methods=['GET','POST'])
 @admin_required
 def pass_reset(uid):
@@ -149,6 +147,22 @@ def pass_reset(uid):
             db.session.commit()
             return redirect(url_for('admin_home'))
     return render_template('reset.html',form = form, error = error, username = username, uid = uid)
+
+@app.route('/report/<int:rid>', methods=['GET','POST'])
+@login_required
+def report_review(rid):
+    report = Report.query.filter_by(rid = rid).first()
+    exercise_name = get_exercise_name(report.eid)
+    user_name = User.query.filter_by(uid = report.uid).first().username
+    print(report.report)
+    return render_template('report.html',report = report, ename = exercise_name, username = user_name)
+
+def get_exercise_name(eid):
+    exercise_names = ["KnobEx","TorqueEx","TorqueUDEx","pbdUGIBiopsyEx","pbdUGISnareEx","pbdUGIExamEx"]
+    enumerated_ename = [[i,exercise_names[i-1]] for i in range(1,len(exercise_names)+1)]
+    for i in range(0,len(enumerated_ename)):
+        if eid == enumerated_ename[i][0]:
+            return enumerated_ename[i][1]
 
 @app.route('/admin/home/<int:uid>/delete', methods=['GET','POST'])
 @admin_required

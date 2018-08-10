@@ -38,7 +38,7 @@
             <th> Gender </th>
             <th> User Type </th>
             <th> Password </th>
-            <th> Delete </th>
+            <th> <img src="https://png.icons8.com/metro/30/000000/delete.png"> </th>
         </tr>
         {% for user in form.admin_user %}
         <tr>
@@ -50,8 +50,6 @@
                 {% set my_string = '' %}
                 {% set my_string = my_string + user.uid.name + '_admin' %}
                 <td><button class="btn btn-sm btn-success" name={{ my_string }} value={{ my_string }} type="submit">Reset Password</button></td>
-                {% set my_string = my_string + '_delete' %}
-                <td><button class="btn btn-sm btn-success" name={{ my_string }} value={{ my_string }} type="submit">Delete</button></td>
         </tr>
         {% endfor %}
         {% for user in form.users %}
@@ -65,7 +63,7 @@
             {% set my_string = my_string + user.uid.name + '_user' %}
             <td><button class="btn btn-sm btn-success" name={{ my_string }} value={{ my_string }} type="submit">Reset Password</button></td>
             {% set my_string = my_string + '_delete' %}
-            <td><button class="btn btn-sm btn-success" name={{ my_string }} value={{ my_string }} type="submit">Delete</button></td>
+            <td><button class="btn btn-sm btn-success" name={{ my_string }} value={{ my_string }} type="submit"><img src="https://png.icons8.com/flat_round/15/000000/delete-sign.png"></button></td>
         </tr>
         {% endfor %}
     </table>

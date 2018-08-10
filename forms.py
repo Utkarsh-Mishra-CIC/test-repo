@@ -30,10 +30,6 @@ class RegisterForm(FlaskForm):
         choices=[('Male', 'Male'), ('Female', 'Female'), ('', 'Select')]
     )
     usertype = StringField ('User Type',render_kw={'readonly': True})
-    # usertype = SelectField(
-    #     'User Type',
-    #     choices=[('Trainee','Trainee'), ('Expert','Expert')]
-    # )
 
 class AdminForm(FlaskForm):
     password = PasswordField('Password', validators=[DataRequired()])
