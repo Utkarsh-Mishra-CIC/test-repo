@@ -26,6 +26,7 @@
 <!-- post form -->
 <h3>Admin Portal!</h3>
 <br>
+<!-- TODO: Does the table need to be inside this form? -->
 <form class="form-message" role="form" method="post" action="">
   <!-- {{ form.csrf_token }} -->
 
@@ -40,30 +41,26 @@
             <th> Password </th>
             <th> <img src="https://png.icons8.com/metro/30/000000/delete.png"> </th>
         </tr>
-        {% for user in form.admin_user %}
-        <tr>
-                <td>{{ user.uid }}</td>
-                <td>{{ user.username }}</td>
-                <td>{{ user.email }}</td>
-                <td>{{ user.gender }}</td>
-                <td>{{ user.usertype }}</td>
-                {% set my_string = '' %}
-                {% set my_string = my_string + user.uid.name + '_admin' %}
-                <td><button class="btn btn-sm btn-success" name={{ my_string }} value={{ my_string }} type="submit">Reset Password</button></td>
-        </tr>
-        {% endfor %}
         {% for user in form.users %}
         <tr>
+            {% set uidstr = '%d'%(user.uid.data) %}
             <td>{{ user.uid }}</td>
             <td>{{ user.username }}</td>
             <td>{{ user.email }}</td>
             <td>{{ user.gender }}</td>
+
+            {% if user.username.data == "Admin" %}
+            <td>Admin</td>
+            {% else %}
             <td>{{ user.usertype }}</td>
-            {% set my_string = '' %}
-            {% set my_string = my_string + user.uid.name + '_user' %}
-            <td><button class="btn btn-sm btn-success" name={{ my_string }} value={{ my_string }} type="submit">Reset Password</button></td>
-            {% set my_string = my_string + '_delete' %}
-            <td><button class="btn btn-sm btn-success" name={{ my_string }} value={{ my_string }} type="submit"><img src="https://png.icons8.com/flat_round/15/000000/delete-sign.png"></button></td>
+            {% endif %}
+
+            <td><a href="/admin/home/{{uidstr}}/reset">Reset Password</a></td>
+            
+            {% if user.username.data != "Admin" %}
+            <td><a href="/admin/home/{{uidstr}}/delete">Delete</a></td>
+            {% endif %}
+
         </tr>
         {% endfor %}
     </table>

@@ -79,45 +79,10 @@ def admin_home():
     error = None
     print(request.headers)
     form = AdminListForm(request.form, csrf_enabled = False)
-    admin = db.session.query(User).filter_by(username='Admin').first()
-    all_users = db.session.query(User).filter(User.username!='Admin').all()
-    admin_row_form = SuperAdminRowForm()
-    admin_row_form.email = admin.email
-    admin_row_form.uid = admin.uid
-    admin_row_form.username = admin.username
-    admin_row_form.gender = admin.gender
-    admin_row_form.usertype = admin.usertype
-    form.admin_user.append_entry(admin_row_form)
-    for user in all_users:
-        user_form = AdminRowForm()
-        user_form.email = user.email
-        user_form.uid = user.uid
-        user_form.username = user.username
-        user_form.gender = user.gender
-        user_form.usertype = user.usertype
-        form.users.append_entry(user_form)
-    if request.method == 'POST':
-        my_list = []
-        my_other_list = []
-        if request.form.get('admin_user-0-uid_admin') == 'admin_user-0-uid_admin':
-            return redirect(url_for('pass_reset',uid = 1))
-        else:
-            for key in request.form:
-                m = re.match("^users-[0-9]+-uid_user$",key)
-                n = re.match("^users-[0-9]+-uid_user_delete$",key)
-                if m:
-                    my_list.append(key)
-                if n:
-                    my_other_list.append(key)
-            for key in my_list:
-                if request.form.get(key) == key:
-                    # user_id = re.findall(r'\d+', key)
-                    user_id = [int(s) for s in key.split('-') if s.isdigit()]
-                    return redirect(url_for('pass_reset',uid = user_id[0]+2))
-            for key in my_other_list:
-                if request.form.get(key) == key:
-                    user_id = [int(s) for s in key.split('-') if s.isdigit()]
-                    return redirect(url_for('user_delete',uid = user_id[0]+2))
+
+    for user in db.session.query(User).all():
+        form.users.append_entry(AdminRowForm.FromUser(user))
+
     return render_template('admin_index.html',form=form,error=error)
 
 @app.route('/admin/home/usertype/update/<int:uid>/<type_user>',methods=['GET','POST'])
@@ -161,6 +126,7 @@ def get_exercise_name(eid):
 @app.route('/admin/home/<int:uid>/delete', methods=['GET','POST'])
 @admin_required
 def user_delete(uid):
+    #TODO: Ensure uid is not admin uid
     User.query.filter_by(uid = uid).delete()
     db.session.commit()
     return redirect(url_for('admin_home'))

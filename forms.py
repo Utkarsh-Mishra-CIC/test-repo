@@ -49,15 +49,17 @@ class AdminRowForm(FlaskForm):
         choices=[('Trainee','Trainee'),('Expert','Expert')]
     )
 
-class SuperAdminRowForm(FlaskForm):
-    uid = TextField('UID', render_kw={'readonly':True})
-    username = TextField('Username',render_kw={'readonly':True})
-    email = TextField('Email',render_kw={'readonly':True})
-    gender = TextField('Gender', render_kw={'readonly':True})
-    usertype = TextField('User Type', render_kw={'readonly':True})
+    @staticmethod
+    def FromUser(user):
+        r          = AdminRowForm()
+        r.email    = user.email
+        r.uid      = user.uid
+        r.username = user.username
+        r.gender   = user.gender
+        r.usertype = user.usertype
+        return r
 
 class AdminListForm(FlaskForm):
-    admin_user = FieldList(FormField(SuperAdminRowForm))
     users = FieldList(FormField(AdminRowForm))
 
 class ResetPassword(FlaskForm):
