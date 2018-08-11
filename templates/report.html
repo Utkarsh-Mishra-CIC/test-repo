@@ -1,33 +1,17 @@
 {% extends "base.html" %}
 {% block content %}
 <script>
+
+
     $(document).ready(function(){
-        function replacer(key, value) {
-            return value.replace(/[^\w\s]/gi, '');
-        }
-        var djangoData = $('#my-data').data(); // JSON.parse($('#my-data').data());
-        //djangoData = JSON.stringify(djangoData).replace(/(\r\n\t|\n|\r\t)/gm,""); 
-        var mystring = JSON.stringify(djangoData,null,'\n');
-        mystring = mystring.replace(/\r?\n|\r/g, "");
-        mystring = mystring.trim();
-        console.log( mystring);
-        // var mystring = JSON.stringify(djangoData).replace(/\\n/g, "\\n")
-        // .replace(/\\'/g, "\\'")
-        // .replace(/\\"/g, '\\"')
-        // .replace(/\\&/g, "\\&")
-        // .replace(/\\r/g, "\\r")
-        // .replace(/\\t/g, "\\t")
-        // .replace(/\\b/g, "\\b")
-        // .replace(/\\f/g, "\\f");
-        // console.log(JSON.parse(mystring));
+        $.getJSON( "/home/report/{{ report.rid }}/data", function( data ) {console.log(data);});
     });
+
+
+
 </script>
-<h1>Welcome to Flask!</h1>
-<br>
-<p>Click <a href="/logout">here</a> to logout.</p>
-<br>
-<strong>User:</strong> {{ username }} <br>
-<strong>Exercise Name:</strong> {{ ename }} <br>
-<meta id="my-data" data-other="{{ report.report }}">
+<h1>Report</h1>
+<strong>User:</strong> {{ user.username }} <br>
+<strong>Exercise Name:</strong> {{ report.ename }} <br>
 
 {% endblock %}

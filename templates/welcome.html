@@ -1,8 +1,26 @@
 {% extends "base.html" %}
 {% block content %}
 
-<h1>Welcome to Flask!</h1>
+<h2>User: {{session['user']}}</h2>
 <br>
-<p>Click <a href="/">here</a> to go home.</p>
+
+<div>
+    <table>
+        <tr>
+            <th> Report ID </th>
+            <th> Exercise  </th>
+            <th> View </th>
+            <th> Delete </th>
+        </tr>
+        {% for report in user.reports %}
+        <tr>
+            <td>{{ report.rid }}</td>
+            <td>{{ report.ename }}</td>
+            <td><a href="/home/report/{{report.rid}}/">Report</a></td>    
+            <td><a href="/home/report/{{report.rid}}/delete">Delete</a></td>    
+        </tr>
+        {% endfor %}
+    </table>
+</div>
 
 {% endblock %}

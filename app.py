@@ -1,6 +1,6 @@
 # import the Flask class from the flask module
 from flask import Flask, render_template, redirect, \
-    url_for, request, session, flash
+    url_for, request, session, flash, json
 from functools import wraps
 from flask_sqlalchemy import SQLAlchemy
 from flask_bcrypt import Bcrypt
@@ -37,7 +37,7 @@ def login_required(f):
         if 'user' in session and session['user'] != 'Admin':
             return f(*args, **kwargs)
         else:
-            flash('You need to login first.')
+            flash('Acess Denied !!')
             return redirect(url_for('login'))
     return wrap
 
@@ -47,37 +47,71 @@ def admin_required(f):
         if 'user' in session and session['user'] == 'Admin':
             return f(*args, **kwargs)
         else:
-            flash('Admin need to login first.')
-            return redirect(url_for('admin'))
+            flash('Acess Denied !!')
+            return redirect(url_for('login'))
     return wrap
 
 # use decorators to link the function to a url
-@app.route('/', methods=['GET', 'POST'])
+@app.route('/home', methods=['GET', 'POST'])
 @login_required
 def home():
-    error = None
-    print(request.headers)
+    #form = UserReportsForm.FromList(Report.query.filter_by(uid = current_user.uid).all())
+    return render_template('welcome.html',user=current_user)  # render a template
+
+@app.route('/home/report/<int:rid>/data', methods=['GET','POST'])
+@login_required
+def home_report_data(rid):
+    report = Report.query.filter_by(rid = rid).first()
+    if report.uid != current_user.uid:
+        return app.response_class(response="{}",status=404,mimetype="application/json")
+    
+    return app.response_class(response=report.report,status=200,mimetype='application/json')
+
+@app.route('/home/report/<int:rid>/', methods=['GET','POST'])
+@login_required
+def home_report(rid):
+    report = Report.query.filter_by(rid = rid).first()
+    if report.uid != current_user.uid:
+        return redirect(url_for("home"))
+
+    return render_template('report.html',user=current_user,report=report)
+
+
+@app.route('/home/report/<int:rid>/delete', methods=['GET','POST'])
+@login_required
+def home_report_delete(rid):
+    #TODO: Ensure uid is not admin uid
+    res = Report.query.filter_by(rid = rid)
+
+    if res.first().uid != current_user.uid:
+        return app.response_class(response="{}",status=404,mimetype="application/json")
+
+    res.delete()    
+    db.session.commit()
+    return redirect(url_for('home'))
+    
+
+
+@app.route('/home/report/insert/', methods=['GET','POST'])
+@login_required
+def home_report_insert():
     form = ReportForm(request.form,csrf_enabled = False)
-    if form.validate_on_submit():
-        new_report = Report(
-            form.eid.data,
-            form.report.data,
-            current_user.uid
-        )
-        db.session.add(new_report)
+    if form.validate_on_submit() and is_unity_request():
+        db.session.add(Report(int(form.eid.data),form.report.data,current_user.uid))
         db.session.commit()
-        flash('New entry was successfully posted. Thanks.')
-        return redirect(url_for('home'))
-    else:
-        posts = db.session.query(Report).filter_by(uid=current_user.uid).all()
-        usertype = current_user.usertype
-        return render_template('index.html', posts=posts,usertype = usertype, form = form, error = error)  # render a template
+        return render_json({"status":"ok"})
+
+
+    return redirect(url_for('home'))
+
+    
+
+
 
 @app.route('/admin/home', methods=['GET', 'POST'])
 @admin_required
 def admin_home():
     error = None
-    print(request.headers)
     form = AdminListForm(request.form, csrf_enabled = False)
 
     for user in db.session.query(User).all():
@@ -98,30 +132,16 @@ def usertype_update(uid,type_user):
 def pass_reset(uid):
     error = None
     form = ResetPassword(request.form, csrf_enabled = False)
-    user = User.query.filter_by(uid = uid).first()
-    username = user.username
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            user.password = bcrypt.generate_password_hash(request.form['password'])
-            db.session.commit()
-            return redirect(url_for('admin_home'))
+
+    if request.method == 'POST' and form.validate_on_submit():
+        user = User.query.filter_by(uid = uid).first()
+        username = user.username
+        
+        user.password = bcrypt.generate_password_hash(request.form['password'])
+        db.session.commit()
+        return redirect(url_for('admin_home'))
     return render_template('reset.html',form = form, error = error, username = username, uid = uid)
 
-@app.route('/report/<int:rid>', methods=['GET','POST'])
-@login_required
-def report_review(rid):
-    report = Report.query.filter_by(rid = rid).first()
-    exercise_name = get_exercise_name(report.eid)
-    user_name = User.query.filter_by(uid = report.uid).first().username
-    print(report.report)
-    return render_template('report.html',report = report, ename = exercise_name, username = user_name)
-
-def get_exercise_name(eid):
-    exercise_names = ["KnobEx","TorqueEx","TorqueUDEx","pbdUGIBiopsyEx","pbdUGISnareEx","pbdUGIExamEx"]
-    enumerated_ename = [[i,exercise_names[i-1]] for i in range(1,len(exercise_names)+1)]
-    for i in range(0,len(enumerated_ename)):
-        if eid == enumerated_ename[i][0]:
-            return enumerated_ename[i][1]
 
 @app.route('/admin/home/<int:uid>/delete', methods=['GET','POST'])
 @admin_required
@@ -131,47 +151,49 @@ def user_delete(uid):
     db.session.commit()
     return redirect(url_for('admin_home'))
 
-@app.route('/admin', methods=['GET', 'POST'])
-def admin():
-    error = None
-    form = AdminForm(request.form, csrf_enabled = False)
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            user = User.query.filter_by(username = 'Admin').first()
-            if user is not None and bcrypt.check_password_hash(user.password, request.form['password']):
-                session['user'] = 'Admin'
-                login_user(user)
-                flash('Admin has logged in!!')
-                return redirect(url_for('admin_home'))
-            else:
-                error = 'Invalid password for Admin'
-    return render_template('admin_login.html',form = form, error = error)
 
-@app.route('/welcome')
-def welcome():
-    return render_template('welcome.html')  # render a template
+def render_json(data,status=200):
+    return app.response_class(
+        response=json.dumps(data),
+        status=status,
+        mimetype='application/json')
 
+def is_unity_request():
+    return request.headers["User-Agent"].startswith("UnityPlayer")
 
 # route for handling the login page logic
+@app.route('/', methods=['GET', 'POST'])
 @app.route('/login', methods=['GET', 'POST'])
 def login():
-    error = None
+
     form = LoginForm(request.form, csrf_enabled = False)
-    if request.method == 'POST':
-        if form.validate_on_submit():
-            if (request.form['username'] != 'Admin'):
-                user = User.query.filter_by(username = request.form['username']).first()
-                if user is not None and bcrypt.check_password_hash(user.password,request.form['password']):
-                    # if (request.form['username'] != 'admin') or request.form['password'] != 'admin':
-                    session['user'] = request.form['username']
-                    login_user(user)
-                    flash('You were logged in.')
-                    return redirect(url_for('home'))
-            else:
-                error = "Invalid username or password"
-        else:
-            error = 'Invalid username or password.'
-    return render_template('login.html',form = form, error=error)
+
+    def redoThisForm(error=None):        
+        return render_template('login.html',form = form, error=error) if not is_unity_request() \
+            else render_json({"status":"failed","reason":str(error)})
+
+    if request.method != 'POST':
+        return redoThisForm()
+
+    if not form.validate_on_submit():
+        return redoThisForm("Invalid username or password")
+
+    user = User.query.filter_by(username = request.form['username']).first()
+
+    if user is None or not bcrypt.check_password_hash(user.password,request.form['password']):
+        return redoThisForm("Invalid username or password")
+
+    session['user'] = request.form['username']
+    login_user(user)
+    flash('You were logged in.')
+
+    if is_unity_request():
+        return render_json({"status":"ok"})
+
+    if session['user'] == 'Admin':
+        return redirect(url_for("admin_home"))
+
+    return redirect(url_for('home'))
 
 
 @app.route('/logout')
