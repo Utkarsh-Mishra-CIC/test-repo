@@ -34,7 +34,7 @@ def load_user(user_id):
 def login_required(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if 'user' in session:
+        if 'user' in session and session['user'] != 'Admin':
             return f(*args, **kwargs)
         else:
             flash('You need to login first.')
@@ -44,7 +44,7 @@ def login_required(f):
 def admin_required(f):
     @wraps(f)
     def wrap(*args, **kwargs):
-        if 'user' in session:
+        if 'user' in session and session['user'] == 'Admin':
             return f(*args, **kwargs)
         else:
             flash('Admin need to login first.')
@@ -76,8 +76,6 @@ def home():
 @app.route('/admin/home', methods=['GET', 'POST'])
 @admin_required
 def admin_home():
-    if current_user.username != 'Admin':
-        return redirect(url_for('home'))
     error = None
     print(request.headers)
     form = AdminListForm(request.form, csrf_enabled = False)
@@ -125,8 +123,6 @@ def admin_home():
 @app.route('/admin/home/usertype/update/<int:uid>/<type_user>',methods=['GET','POST'])
 @admin_required
 def usertype_update(uid,type_user):
-    if current_user.username != 'Admin':
-        return redirect(url_for('home'))
     user = User.query.filter_by(uid = uid).first()
     user.usertype = type_user
     db.session.commit()
@@ -135,8 +131,6 @@ def usertype_update(uid,type_user):
 @app.route('/admin/home/<int:uid>/reset', methods=['GET','POST'])
 @admin_required
 def pass_reset(uid):
-    if current_user.username != 'Admin':
-        return redirect(url_for('home'))
     error = None
     form = ResetPassword(request.form, csrf_enabled = False)
     user = User.query.filter_by(uid = uid).first()
@@ -167,8 +161,6 @@ def get_exercise_name(eid):
 @app.route('/admin/home/<int:uid>/delete', methods=['GET','POST'])
 @admin_required
 def user_delete(uid):
-    if current_user.username != 'Admin':
-        return redirect(url_for('home'))
     User.query.filter_by(uid = uid).delete()
     db.session.commit()
     return redirect(url_for('admin_home'))
